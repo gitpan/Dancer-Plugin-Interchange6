@@ -1,0 +1,55 @@
+{
+   "abstract" : "Dancer Plugin for Interchange6 Open Source Shop Machine",
+   "author" : [
+      "Stefan Hornburg (Racke) <racke@linuxia.de>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "ExtUtils::MakeMaker version 6.76, CPAN::Meta::Converter version 2.132510",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Dancer-Plugin-Interchange6",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "DBICx::TestDatabase" : "0",
+            "Test::More" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Business::OnlinePayment" : "3.02",
+            "Dancer" : "1.3098",
+            "Dancer::Plugin::DBIC" : "0",
+            "Interchange6" : "0.001",
+            "Interchange6::Schema" : "0.004",
+            "YAML" : "0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/interchange/Dancer-Plugin-Interchange6/issues"
+      },
+      "repository" : {
+         "url" : "https://github.com/interchange/Dancer-Plugin-Interchange6.git"
+      }
+   },
+   "version" : "0.001"
+}
