@@ -21,6 +21,7 @@ no_index:
 requires:
   Business::OnlinePayment: 3.02
   Dancer: 1.3098
+  Dancer::Plugin::Auth::Extensible: 0
   Dancer::Plugin::DBIC: 0
   Interchange6: 0.001
   Interchange6::Schema: 0.004
@@ -28,4 +29,4 @@ requires:
 resources:
   bugtracker: https://github.com/interchange/Dancer-Plugin-Interchange6/issues
   repository: https://github.com/interchange/Dancer-Plugin-Interchange6.git
-version: 0.001
+version: 0.002
