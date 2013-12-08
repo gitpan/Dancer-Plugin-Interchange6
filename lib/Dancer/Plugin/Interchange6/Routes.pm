@@ -61,7 +61,8 @@ passed to the templates:
 
 =item before_product_display
 
-The hook sub receives the product data as hash reference.
+The hook sub receives a hash reference, where the Product object
+is the value of the C<product> key.
 
 =item before_cart_display
 
@@ -142,7 +143,8 @@ sub _setup_routes {
             if ($product->active) {
                 # flypage
                 execute_hook('before_product_display', $product);
-                return template $routes_config->{product}->{template}, $product;
+                return template $routes_config->{product}->{template},
+                    {product => $product};
             }
             else {
                 # discontinued
@@ -160,13 +162,14 @@ sub _setup_routes {
 
         if ($navigation_result == 1) {
             # navigation item found
-            my $nav = $navigation_result->[0];
-
+            my $nav = $navigation_result->next;
             # retrieve related products
-            my $products = $nav->search_related({active => 1});
+            my $nav_products = $nav->search_related('navigation_products')->search_related('sku');
 
-            while (my $rec = $products->next) {
-                debug "Related product for ", $nav->name, ": ", $rec->sku;
+            my $products;
+
+            while (my $rec = $nav_products->next) {
+                push @$products, $rec;
             }
 
             my $tokens = {navigation => $nav,

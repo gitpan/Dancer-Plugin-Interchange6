@@ -24,9 +24,9 @@ requires:
   Dancer::Plugin::Auth::Extensible: 0
   Dancer::Plugin::DBIC: 0
   Interchange6: 0.001
-  Interchange6::Schema: 0.004
+  Interchange6::Schema: 0.005
   YAML: 0
 resources:
   bugtracker: https://github.com/interchange/Dancer-Plugin-Interchange6/issues
   repository: https://github.com/interchange/Dancer-Plugin-Interchange6.git
-version: 0.002
+version: 0.003
