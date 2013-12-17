@@ -17,11 +17,11 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.003
+Version 0.004
 
 =cut
 
-our $VERSION = '0.003';
+our $VERSION = '0.004';
 
 =head1 ROUTES
 
@@ -181,8 +181,8 @@ register shop_product => sub {
     _shop_resultset('Product', @_);
 };
 
-register shop_product_class => sub {
-    _shop_resultset('ProductClass', @_);
+register shop_country => sub {
+    _shop_resultset('Country', @_);
 };
 
 register cart => sub {

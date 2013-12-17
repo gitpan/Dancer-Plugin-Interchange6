@@ -8,7 +8,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 0
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.76, CPAN::Meta::Converter version 2.132510'
+generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -24,9 +24,9 @@ requires:
   Dancer::Plugin::Auth::Extensible: 0
   Dancer::Plugin::DBIC: 0
   Interchange6: 0.001
-  Interchange6::Schema: 0.005
+  Interchange6::Schema: 0.008
   YAML: 0
 resources:
   bugtracker: https://github.com/interchange/Dancer-Plugin-Interchange6/issues
   repository: https://github.com/interchange/Dancer-Plugin-Interchange6.git
-version: 0.003
+version: 0.004
