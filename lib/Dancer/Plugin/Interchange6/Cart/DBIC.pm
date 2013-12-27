@@ -124,6 +124,7 @@ sub _create_cart {
     %cart = (name => $self->name,
              created => $self->created,
              last_modified => $self->last_modified,
+             sessions_id => $self->{session_id},
              );
 
     if (defined $self->{users_id}) {
@@ -143,18 +144,18 @@ sub _load_cart {
     my ($record, @items);
 
     # retrieve items from database
-    my $related = $result->search_related('cart_products',
+    my $related = $result->search_related('CartProduct',
                                           {},
                                           {
-                                           join => 'sku',
-                                           prefetch => 'sku',
+                                           join => 'Product',
+                                           prefetch => 'Product',
                                           })
         ;
 
     while (my $record = $related->next) {
-        push @items, {sku => $record->sku->sku,
-                      name => $record->sku->name,
-                      price => $record->sku->price,
+        push @items, {sku => $record->Product->sku,
+                      name => $record->Product->name,
+                      price => $record->Product->price,
                       quantity => $record->quantity,
                       };
     }
@@ -246,7 +247,7 @@ sub _after_cart_rename {
 	return;
     }
 
-    resultset('Cart')->find($self->id)->update({name => $args[2]});
+    $self->{sqla}->resultset('Cart')->find($self->id)->update({name => $args[2]});
 }
 
 sub _after_cart_clear {
@@ -258,7 +259,7 @@ sub _after_cart_clear {
     }
 
     # delete all products from this cart
-    my $rs = $self->{sqla}->resultset('Cart')->search({'cart_products.carts_id' => $self->{id}}, {join => 'cart_products'})->delete_all;
+    my $rs = $self->{sqla}->resultset('Cart')->search({'CartProduct.carts_id' => $self->{id}}, {join => 'CartProduct'})->delete_all;
 }
 
 =head1 AUTHOR

@@ -10,6 +10,7 @@ use Dancer::Plugin::Auth::Extensible;
 
 use Interchange6::Class;
 use Interchange6::Cart;
+use Dancer::Plugin::Interchange6::Business::OnlinePayment;
 
 =head1 NAME
 
@@ -17,11 +18,11 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.004
+Version 0.005
 
 =cut
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 =head1 ROUTES
 
@@ -173,6 +174,18 @@ register_hook(qw/before_cart_add_validate
                  before_cart_clear after_cart_clear
                 /);
 
+register shop_schema => sub {
+    _shop_schema();
+};
+
+register shop_address => sub {
+    _shop_resultset('Address', @_);
+};
+
+register shop_country => sub {
+    _shop_resultset('Country', @_);
+};
+
 register shop_navigation => sub {
     _shop_resultset('Navigation', @_);
 };
@@ -181,8 +194,49 @@ register shop_product => sub {
     _shop_resultset('Product', @_);
 };
 
-register shop_country => sub {
-    _shop_resultset('Country', @_);
+register shop_user => sub {
+    _shop_resultset('User', @_);
+};
+
+register shop_charge => sub {
+	my (%args) = @_;
+	my ($schema, $bop_object, $payment_settings, $provider, $provider_settings);
+
+	$payment_settings = plugin_setting->{payment};
+
+    # determine payment provider
+    if (exists $args{provider} && $args{provider}) {
+        $provider = $args{provider};
+    }
+    else {
+        $provider = $payment_settings->{default_provider};
+    }
+
+    if (exists $payment_settings->{providers}->{$provider}) {
+        $provider_settings = $payment_settings->{providers}->{$provider};
+    }
+    else {
+        die "Settings for provider $provider missing.";
+    }
+
+    # create BOP object wrapper with provider settings
+	$bop_object = Dancer::Plugin::Interchange6::Business::OnlinePayment->new($provider, %$provider_settings);
+
+    # call charge method
+    debug "Charging with the following parameters: ", \%args;
+
+    # log request
+    $schema = _shop_schema();
+    $schema->resultset('PaymentOrder')->create({payment_mode => $provider,
+                                                status => 'request',
+                                                sessions_id => session->id,
+                                                payment_action => 'charge',
+                                                amount => $args{amount},
+                                               });
+
+    $bop_object->charge(%args);
+
+	return $bop_object;
 };
 
 register cart => sub {
@@ -207,6 +261,10 @@ register cart => sub {
     }
 
     return $cart;
+};
+
+sub _shop_schema {
+    return schema;
 };
 
 sub _shop_resultset {

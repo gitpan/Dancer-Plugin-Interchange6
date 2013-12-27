@@ -3,6 +3,7 @@ package Dancer::Plugin::Interchange6::Routes;
 use Dancer ':syntax';
 use Dancer::Plugin;
 use Dancer::Plugin::Interchange6;
+use Dancer::Plugin::Interchange6::Routes::Account;
 use Dancer::Plugin::Interchange6::Routes::Cart;
 use Dancer::Plugin::Interchange6::Routes::Checkout;
 
@@ -24,6 +25,14 @@ Route for displaying and updating the cart.
 
 Route for the checkout process.
 
+=item login (C</login>)
+
+Login route.
+
+=item logout (C</logout>)
+
+Logout route.
+
 =item navigation
 
 Route for displaying navigation pages, for example
@@ -41,6 +50,14 @@ The template for each route type can be configured:
 
     plugins:
       Interchange6::Routes:
+        account:
+          login:
+            template: login
+            uri: login
+            success_uri:
+          logout:
+            template: logout
+            uri: logout
         cart:
           template: cart
         checkout:
@@ -73,7 +90,20 @@ is the value of the C<product> key.
 The hook sub receives the navigation data as hash reference.
 The list of products is the value of the C<products> key.
 
+=item before_login_display
+
 =back
+
+=head3 EXAMPLES
+
+Disable parts of layout on the login view:
+
+    hook 'before_login_display' => sub {
+        my $tokens = shift;
+
+        $tokens->{layout_noleft} = 1;
+        $tokens->{layout_noright} = 1;
+    };
 
 =cut
 
@@ -84,16 +114,38 @@ register shop_setup_routes => sub {
 register_hook (qw/before_product_display before_navigation_display/);
 register_plugin;
 
-our %route_defaults = (cart => {template => 'cart'},
+our %route_defaults = (
+                       account => {login => {template => 'login',
+                                             uri => 'login',
+                                             success_uri => '',
+                                            },
+                                   logout => {template => 'logout',
+                                              uri => 'logout',
+                                             },
+                                  },
+                       cart => {template => 'cart'},
                        checkout => {template => 'checkout'},
                        navigation => {template => 'listing'},
                        product => {template => 'product'});
 
 sub _setup_routes {
+    my $sub;
     my $plugin_config = plugin_setting;
 
     # update settings with defaults
     my $routes_config = _config_routes($plugin_config, \%route_defaults);
+
+    # account routes
+    my $account_routes = Dancer::Plugin::Interchange6::Routes::Account::account_routes($routes_config);
+
+    get '/' . $routes_config->{account}->{login}->{uri}
+        => $account_routes->{login}->{get};
+
+    post '/' . $routes_config->{account}->{login}->{uri}
+        => $account_routes->{login}->{post};
+
+    any ['get', 'post'] => '/' . $routes_config->{account}->{logout}->{uri}
+        => $account_routes->{logout}->{any};
 
     # routes for cart
     my $cart_sub = Dancer::Plugin::Interchange6::Routes::Cart::cart_route($routes_config);
@@ -164,7 +216,7 @@ sub _setup_routes {
             # navigation item found
             my $nav = $navigation_result->next;
             # retrieve related products
-            my $nav_products = $nav->search_related('navigation_products')->search_related('sku');
+            my $nav_products = $nav->search_related('NavigationProduct')->search_related('Product');
 
             my $products;
 

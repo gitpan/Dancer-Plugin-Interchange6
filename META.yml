@@ -4,11 +4,12 @@ author:
   - 'Stefan Hornburg (Racke) <racke@linuxia.de>'
 build_requires:
   DBICx::TestDatabase: 0
+  Test::Database: 0
   Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 0
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
+generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.133380'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -23,10 +24,10 @@ requires:
   Dancer: 1.3098
   Dancer::Plugin::Auth::Extensible: 0
   Dancer::Plugin::DBIC: 0
-  Interchange6: 0.001
-  Interchange6::Schema: 0.008
+  Interchange6: 0.002
+  Interchange6::Schema: 0.01
   YAML: 0
 resources:
   bugtracker: https://github.com/interchange/Dancer-Plugin-Interchange6/issues
   repository: https://github.com/interchange/Dancer-Plugin-Interchange6.git
-version: 0.004
+version: 0.005
