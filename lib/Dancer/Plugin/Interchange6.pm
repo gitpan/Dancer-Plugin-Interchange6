@@ -18,11 +18,23 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.005
+Version 0.006
 
 =cut
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
+
+=head1 REQUIREMENTS
+
+All Interchange6 Dancer applications need to use the L<Dancer::Session::DBIC>
+engine:
+
+    session: DBIC
+
+The easiest way to configure this is in your main module, just after all
+the C<use> statements:
+
+   set session_options => {schema => schema};
 
 =head1 ROUTES
 
@@ -161,6 +173,22 @@ Triggered before cart is renamed.
 
 Triggered after cart is renamed.
 
+=item before_cart_set_users_id
+
+Triggered before users_id is set for the cart.
+
+=item after_cart_set_users_id
+
+Triggered after users_id is set for the cart.
+
+=item before_cart_set_sessions_id
+
+Triggered before sessions_id is set for the cart.
+
+=item after_cart_set_sessions_id
+
+Triggered after sessions_id is set for the cart.
+
 =back
 
 =cut
@@ -172,6 +200,8 @@ register_hook(qw/before_cart_add_validate
                  before_cart_remove after_cart_remove
                  before_cart_rename after_cart_rename
                  before_cart_clear after_cart_clear
+                 before_cart_set_users_id after_cart_set_users_id
+                 before_cart_set_sessions_id after_cart_set_sessions_id
                 /);
 
 register shop_schema => sub {
@@ -239,7 +269,10 @@ register shop_charge => sub {
 	return $bop_object;
 };
 
-register cart => sub {
+register cart => \&_shop_cart;
+register shop_cart => \&_shop_cart;
+
+sub _shop_cart {
     my $name = 'main';
     my ($user_ref, $cart);
 
