@@ -158,6 +158,7 @@ sub _load_cart {
         push @items, {sku => $record->Product->sku,
                       name => $record->Product->name,
                       price => $record->Product->price,
+                      uri => $record->Product->uri,
                       quantity => $record->quantity,
                       };
     }
@@ -272,6 +273,9 @@ sub _after_cart_set_users_id {
         return;
     }
 
+    # skip if cart is not yet stored in the database
+    return unless $self->{id};
+
     # change users_id
     my $data = $args[1];
 
@@ -287,6 +291,9 @@ sub _after_cart_set_sessions_id {
         # not our cart
         return;
     }
+
+    # skip if cart is not yet stored in the database
+    return unless $self->{id};
 
     # change sessions_id
     my $data = $args[1];

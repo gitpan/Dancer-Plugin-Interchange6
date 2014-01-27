@@ -11,6 +11,7 @@ WriteMakefile(
       ? ('LICENSE'=> 'perl')
       : ()),
     PL_FILES            => {},
+    EXE_FILES           => ['bin/interchange6-expire-sessions'],
     BUILD_REQUIRES      => {
                             'Test::More' => 0,
                             'DBICx::TestDatabase' => 0,
@@ -18,11 +19,13 @@ WriteMakefile(
                       },
     PREREQ_PM => {
                   'YAML'       => 0,
-                  'Interchange6::Schema'     => 0.011,
+                  'Interchange6::Schema'     => 0.013,
                   'Interchange6' => 0.003,
                   'Dancer'     => 1.3098,
+                  'Dancer::Session::DBIC' => 0,
                   'Dancer::Plugin::DBIC' => 0,
                   'Dancer::Plugin::Auth::Extensible' => 0,
+                  'Dancer::Plugin::Auth::Extensible::Provider::DBIC' => 0,
                   'Business::OnlinePayment' => 3.02,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
