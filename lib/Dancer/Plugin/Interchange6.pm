@@ -18,11 +18,11 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.007
+Version 0.008
 
 =cut
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 
 =head1 REQUIREMENTS
 
@@ -211,7 +211,7 @@ register_hook(qw/before_cart_add_validate
                 /);
 
 register shop_schema => sub {
-    _shop_schema();
+    _shop_schema(@_);
 };
 
 register shop_address => sub {
@@ -230,8 +230,16 @@ register shop_navigation => sub {
     _shop_resultset('Navigation', @_);
 };
 
+register shop_order => sub {
+    _shop_resultset('Order', @_);
+};
+
 register shop_product => sub {
     _shop_resultset('Product', @_);
+};
+
+register shop_review => sub {
+    _shop_resultset('Review', @_);
 };
 
 register shop_user => sub {
@@ -267,14 +275,30 @@ register shop_charge => sub {
 
     # log request
     $schema = _shop_schema();
-    $schema->resultset('PaymentOrder')->create({payment_mode => $provider,
-                                                status => 'request',
-                                                sessions_id => session->id,
-                                                payment_action => 'charge',
-                                                amount => $args{amount},
-                                               });
+
+    my %payment_data = (payment_mode => $provider,
+                        status => 'request',
+                        sessions_id => session->id,
+                        payment_action => 'charge',
+                        amount => $args{amount},
+                        users_id => session('logged_in_user_id'),
+                        );
+
+    my $payment_order = $schema->resultset('PaymentOrder')->create(\%payment_data);
 
     $bop_object->charge(%args);
+
+    if ($bop_object->is_success) {
+        $payment_order->update({
+            status => 'success',
+            auth_code => $bop_object->authorization,
+        });
+    }
+    else {
+        $payment_order->update({
+            status => 'failure',
+        });
+    }
 
 	return $bop_object;
 };
@@ -307,7 +331,16 @@ sub _shop_cart {
 };
 
 sub _shop_schema {
-    return schema;
+    my $schema_key;
+
+    if (@_) {
+        $schema_key = $_[0];
+    }
+    else {
+        $schema_key = 'default';
+    }
+
+    return schema($schema_key);
 };
 
 sub _shop_resultset {
@@ -327,9 +360,11 @@ register_plugin;
 The L<Dancer> developers and community for their great application framework
 and for their quick and competent support.
 
+Peter Mottram for his patches.
+
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-2013 Stefan Hornburg (Racke).
+Copyright 2010-2014 Stefan Hornburg (Racke).
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published

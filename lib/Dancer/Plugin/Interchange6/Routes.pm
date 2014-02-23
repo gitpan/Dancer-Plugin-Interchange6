@@ -60,8 +60,12 @@ The template for each route type can be configured:
             uri: logout
         cart:
           template: cart
+          uri: cart
+          active: 1
         checkout:
           template: checkout
+          uri: checkout
+          active: 0
         navigation:
           template: listing
         product:
@@ -123,8 +127,14 @@ our %route_defaults = (
                                               uri => 'logout',
                                              },
                                   },
-                       cart => {template => 'cart'},
-                       checkout => {template => 'checkout'},
+                       cart => {template => 'cart',
+                                uri => 'cart',
+                                active => 1,
+                            },
+                       checkout => {template => 'checkout',
+                                    uri => 'checkout',
+                                    active => 0,
+                                },
                        navigation => {template => 'listing'},
                        product => {template => 'product'});
 
@@ -147,15 +157,19 @@ sub _setup_routes {
     any ['get', 'post'] => '/' . $routes_config->{account}->{logout}->{uri}
         => $account_routes->{logout}->{any};
 
-    # routes for cart
-    my $cart_sub = Dancer::Plugin::Interchange6::Routes::Cart::cart_route($routes_config);
-    get '/cart' => $cart_sub;
-    post '/cart' => $cart_sub;
+    if ($routes_config->{cart}->{active}) {
+        # routes for cart
+        my $cart_sub = Dancer::Plugin::Interchange6::Routes::Cart::cart_route($routes_config);
+        get '/' . $routes_config->{cart}->{uri} => $cart_sub;
+        post '/' . $routes_config->{cart}->{uri} => $cart_sub;
+    }
 
-    # routes for checkout
-    my $checkout_sub = Dancer::Plugin::Interchange6::Routes::Checkout::checkout_route($routes_config);
-    get '/checkout' => $checkout_sub;
-    post '/checkout' => $checkout_sub;
+    if ($routes_config->{checkout}->{active}) {
+        # routes for checkout
+        my $checkout_sub = Dancer::Plugin::Interchange6::Routes::Checkout::checkout_route($routes_config);
+        get '/' . $routes_config->{checkout}->{uri} => $checkout_sub;
+        post '/' . $routes_config->{checkout}->{uri} => $checkout_sub;
+    }
 
     # fallback route for flypage and navigation
     get qr{/(?<path>.+)} => sub {
@@ -223,7 +237,7 @@ sub _setup_routes {
             # navigation item found
             my $nav = $navigation_result->next;
             # retrieve related products
-            my $nav_products = $nav->search_related('NavigationProduct')->search_related('Product');
+            my $nav_products = $nav->search_related('NavigationProduct')->search_related('Product', {active => 1});
 
             my $products;
 
