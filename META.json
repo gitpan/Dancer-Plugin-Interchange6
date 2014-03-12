@@ -40,7 +40,7 @@
             "Dancer::Plugin::Auth::Extensible::Provider::DBIC" : "0",
             "Dancer::Plugin::DBIC" : "0",
             "Dancer::Session::DBIC" : "0",
-            "Interchange6" : "0.004",
+            "Interchange6" : "0.01",
             "Interchange6::Schema" : "0.018",
             "YAML" : "0"
          }
@@ -55,5 +55,5 @@
          "url" : "https://github.com/interchange/Dancer-Plugin-Interchange6.git"
       }
    },
-   "version" : "0.009"
+   "version" : "0.010"
 }
