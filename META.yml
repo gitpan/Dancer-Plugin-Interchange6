@@ -32,4 +32,4 @@ requires:
 resources:
   bugtracker: https://github.com/interchange/Dancer-Plugin-Interchange6/issues
   repository: https://github.com/interchange/Dancer-Plugin-Interchange6.git
-version: 0.010
+version: 0.019
