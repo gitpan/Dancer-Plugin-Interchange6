@@ -18,11 +18,11 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.019
+Version 0.020
 
 =cut
 
-our $VERSION = '0.019';
+our $VERSION = '0.020';
 
 =head1 REQUIREMENTS
 
@@ -299,6 +299,8 @@ register shop_charge => sub {
     else {
         $payment_order->update({
             status => 'failure',
+	    payment_error_code => $bop_object->error_code,
+	    payment_error_message => $bop_object->error_message,
         });
     }
 
