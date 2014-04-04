@@ -8,8 +8,7 @@ use Dancer::Plugin;
 use Dancer::Plugin::DBIC;
 use Dancer::Plugin::Auth::Extensible;
 
-use Interchange6::Cart;
-use Dancer::Plugin::Interchange6::Cart::DBIC;
+use Dancer::Plugin::Interchange6::Cart;
 use Dancer::Plugin::Interchange6::Business::OnlinePayment;
 
 =head1 NAME
@@ -18,11 +17,11 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.021
+Version 0.030
 
 =cut
 
-our $VERSION = '0.021';
+our $VERSION = '0.030';
 
 =head1 REQUIREMENTS
 
@@ -311,29 +310,23 @@ register cart => \&_shop_cart;
 register shop_cart => \&_shop_cart;
 
 sub _shop_cart {
-    my $name = 'main';
-    my ($user_ref, $cart);
+    my (%args, $user_ref);
 
-    if (@_ == 1) {
-        $name = $_[0];
-    }
+    %args = (
+        sessions_id => session->id,
+        execute_hook => sub {execute_hook(@_)},
+    );
 
-    $cart = Dancer::Plugin::Interchange6::Cart::DBIC->new(
-                                       name => $name,
-                                       sessions_id => session->id,
-                                       execute_hook => sub {execute_hook(@_)},
-                                   );
+    # we have a cart name
+    $args{name} = $_[0] if @_ == 1;
 
     if ($user_ref = logged_in_user) {
 
-        $cart->load(users_id => $user_ref->users_id,
-                    sessions_id => session->id);
-    }
-    else {
-        $cart->load(sessions_id => session->id);
+        # user is logged in
+        $args{users_id} = $user_ref->users_id;
     }
 
-    return $cart;
+    return Dancer::Plugin::Interchange6::Cart->new( %args );
 };
 
 sub _shop_schema {
