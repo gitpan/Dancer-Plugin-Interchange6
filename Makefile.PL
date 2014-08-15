@@ -17,10 +17,11 @@ WriteMakefile(
                             'Test::Most' => 0,
                             'DBICx::TestDatabase' => 0,
                             'Test::Database' => 0,
+                            'Test::Roo' => 1.004,
                       },
     PREREQ_PM => {
                   'YAML'       => 0,
-                  'Interchange6::Schema'     => 0.040,
+                  'Interchange6::Schema'     => 0.051,
                   'Interchange6' => 0.040,
                   'Dancer'     => 1.3098,
                   'Dancer::Session::DBIC' => 0,

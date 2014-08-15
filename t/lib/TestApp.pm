@@ -10,8 +10,14 @@ use Dancer::Plugin::Interchange6::Routes;
 use Dancer::Plugin::Auth::Extensible;
 use Dancer::Plugin::DBIC;
 
+#print STDERR Dumper(config);
+
 get '/' => sub {
     return 'Home page';
+};
+
+get '/login' => sub {
+    return "Login form";
 };
 
 get '/login/denied' => sub {
