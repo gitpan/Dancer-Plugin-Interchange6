@@ -102,8 +102,40 @@ is the value of the C<product> key.
 
 =item before_navigation_display
 
-The hook sub receives the navigation data as hash reference.
-The list of products is the value of the C<products> key.
+The hook sub receives the navigation data as hash reference:
+
+=over 4
+
+=item navigation
+
+Navigation object.
+
+=item products
+
+Products for this navigation item.
+
+=item count
+
+Number of products.
+
+=item pager
+
+Page for products.
+
+=item template
+
+Name of template. In order to use another template, change
+the value in the hashref.
+
+    hook 'before_navigation_display' => sub {
+        my $navigation_data = shift;
+
+        if ($navigation_data->{navigation}->uri =~ /^admin/) {
+             $navigation_data->{template} = 'admin_listing';
+        }
+    };
+
+=back
 
 =item before_login_display
 
@@ -304,7 +336,8 @@ sub _setup_routes {
 	    my $template = $routes_config->{navigation}->{template};
 
 	    if (my $attr_value = $nav->find_attribute_value('template')) {
-		$template = $attr_value;
+            debug "Change template name from $template to $attr_value due to navigation attribute.";
+            $template = $attr_value;
 	    }
 
             my $tokens = {navigation => $nav,

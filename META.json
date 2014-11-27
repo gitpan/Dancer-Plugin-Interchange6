@@ -4,7 +4,7 @@
       "Stefan Hornburg (Racke) <racke@linuxia.de>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.140640",
+   "generated_by" : "ExtUtils::MakeMaker version 6.98, CPAN::Meta::Converter version 2.142690",
    "license" : [
       "perl_5"
    ],
@@ -41,8 +41,8 @@
             "Dancer::Plugin::Auth::Extensible::Provider::DBIC" : "0",
             "Dancer::Plugin::DBIC" : "0",
             "Dancer::Session::DBIC" : "0",
-            "Interchange6" : "0.04",
-            "Interchange6::Schema" : "0.051",
+            "Interchange6" : "0.060",
+            "Interchange6::Schema" : "0.060",
             "YAML" : "0",
             "perl" : "5.014000"
          }
@@ -55,7 +55,8 @@
       },
       "repository" : {
          "url" : "https://github.com/interchange/Dancer-Plugin-Interchange6.git"
-      }
+      },
+      "x_IRC" : "irc://irc.freenode.net/#interchange"
    },
-   "version" : "0.051"
+   "version" : "0.060"
 }

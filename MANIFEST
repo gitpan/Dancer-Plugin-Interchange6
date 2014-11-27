@@ -14,12 +14,9 @@ MANIFEST.SKIP
 README
 t/00-load.t
 t/lib/Role/config.yml
-t/lib/Role/Database.pm
 t/lib/Role/Deploy.pm
-t/lib/Role/MySQL.pm
-t/lib/Role/PostgreSQL.pm
-t/lib/Role/SQLite.pm
 t/lib/Role/views/cart
+t/lib/Role/views/category
 t/lib/Role/views/checkout
 t/lib/Role/views/listing
 t/lib/Role/views/login
@@ -35,5 +32,6 @@ t/pod.t
 t/test_postgresql.t
 t/test_mysql.t
 t/test_sqlite.t
+t/var/README
 META.yml                                 Module YAML meta-data (added by MakeMaker)
 META.json                                Module JSON meta-data (added by MakeMaker)

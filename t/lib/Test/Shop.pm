@@ -60,18 +60,21 @@ test 'misc shop tests' => sub {
     my %review_data;
 
     %review_data = (
-        author => shop_user->first->id,
+        author_users_id => shop_user->first->id,
         title => 'test',
         content => 'Text review',
         rating => 2,
     );
 
-    cmp_ok(shop_message->count, '==', 0, "0 Message rows");
+    my $message_count = shop_message->count;
 
     lives_ok( sub { $ret = $product->set_reviews(\%review_data) },
     "add a product review" );
 
-    cmp_ok(shop_message->count, '==', 1, "1 Message row");
+    $message_count++;
+
+    cmp_ok( shop_message->count, '==', $message_count,
+        "$message_count Message rows" );
 };
 
 1;

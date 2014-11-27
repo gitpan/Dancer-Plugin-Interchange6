@@ -24,186 +24,23 @@ test 'route tests' => sub {
 
     diag "Test::Routes";
 
-    my ( $resp, $sessionid, %form, $log, @logs );
-
-    set plugins => {
-        DBIC => {
-            default => {
-                schema_class => $self->schema_class,
-                connect_info => [ $self->connect_info ],
-            }
-        }
-    };
+    my ( $resp, $sessionid, %form, $log, @logs, $user );
 
     my $schema = schema;
-
-    set session => 'DBIC';
-    set session_options => { schema => $schema, };
-
-    #lives_ok { $schema->deploy } "Deploy schema";
 
     use TestApp;
     use Dancer::Test;
 
-    # add some stuff to db
-
-    lives_ok(
-        sub {
-            shop_product->create(
-                {
-                    sku               => 'BAN001',
-                    name              => 'bananas',
-                    price             => 5.34,
-                    uri               => 'kilo-of-bananas',
-                    short_description => 'Fresh bananas from Colombia',
-                    description       => 'The best bananas money can buy',
-                    active            => 1,
-                }
-            );
-        },
-        "create product BAN001"
-    );
-
-    lives_ok(
-        sub {
-            shop_product->create(
-                {
-                    sku               => 'ORA001',
-                    name              => 'oranges',
-                    price             => 6.45,
-                    uri               => 'kilo-of-oranges',
-                    short_description => 'California oranges',
-                    description       => 'Organic California navel oranges',
-                    active            => 1,
-                }
-            );
-        },
-        "create product ORA001"
-    );
-    lives_ok(
-        sub {
-            shop_product->create(
-                {
-                    sku               => 'CAR002',
-                    name              => 'carrots',
-                    price             => 3.23,
-                    uri               => 'kilo-of-carrots',
-                    short_description => 'Local carrots',
-                    description       => 'Carrots from our local organic farm',
-                    active            => 1,
-                }
-            );
-        },
-        "create product CAR002"
-    );
-
-    lives_ok(
-        sub {
-            shop_product->create(
-                {
-                    sku               => 'POT002',
-                    name              => 'potatoes',
-                    price             => 10.15,
-                    uri               => 'kilo-of-potatoes',
-                    short_description => 'Maltese potatoes',
-                    description       => 'The best new potatoes in the world',
-                    active            => 1,
-                }
-            );
-        },
-        "create product POT002"
-    );
-
-    my $nav_fruit;
-    lives_ok(
-        sub {
-            $nav_fruit = shop_navigation->create(
-                {
-                    uri       => 'fruit',
-                    type      => 'nav',
-                    scope     => 'main-menu',
-                    name      => 'Fruit',
-                    parent_id => undef,
-                    active    => 1,
-                }
-            );
-        },
-        "create nav fruit"
-    );
-
-    my $nav_veg;
-    lives_ok(
-        sub {
-            $nav_veg = shop_navigation->create(
-                {
-                    uri       => 'vegetables',
-                    type      => 'nav',
-                    scope     => 'main-menu',
-                    name      => 'Vegetables',
-                    parent_id => undef,
-                    active    => 1,
-                }
-            );
-        },
-        "create nav vegetables"
-    );
-
-    lives_ok(
-        sub {
-            $schema->resultset('NavigationProduct')
-              ->create(
-                { sku => 'BAN001', navigation_id => $nav_fruit->navigation_id }
-              );
-        },
-        "create navigation_product BAN001"
-    );
-
-    lives_ok(
-        sub {
-            $schema->resultset('NavigationProduct')
-              ->create(
-                { sku => 'ORA001', navigation_id => $nav_fruit->navigation_id }
-              );
-        },
-        "create navigation_product ORA001"
-    );
-
-    lives_ok(
-        sub {
-            $schema->resultset('NavigationProduct')
-              ->create(
-                { sku => 'CAR002', navigation_id => $nav_veg->navigation_id } );
-        },
-        "create navigation_product CAR002"
-    );
-
-    lives_ok(
-        sub {
-            $schema->resultset('NavigationProduct')
-              ->create(
-                { sku => 'POT002', navigation_id => $nav_veg->navigation_id } );
-        },
-        "create navigation_product POT002"
-    );
-
-    # test test test
-
     # product
 
-    lives_ok { $resp = dancer_response GET => '/kilo-of-bananas' }
-    "GET /kilo-of-bananas (product route)";
+    lives_ok { $resp = dancer_response GET => '/ergo-roller' }
+    "GET /ergo-roller (product route via uri)";
 
     response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr|name="bananas"|, 'found bananas';
+    response_content_like $resp => qr|name="Ergo Roller"|, 'found Ergo Roller';
 
-    lives_ok { $resp = dancer_response GET => '/kilo-of-potatoes' }
-    "GET /kilo-of-potatoes (product route)";
-
-    response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr|name="potatoes"|, 'found potatoes';
-
-    lives_ok { $resp = dancer_response GET => '/CAR002' }
-    "GET /CAR002 (product route)";
+    lives_ok { $resp = dancer_response GET => '/os28005' }
+    "GET /os28005 (product route via sku)";
 
     $log = pop @{&read_logs};
     cmp_deeply(
@@ -211,33 +48,35 @@ test 'route tests' => sub {
         {
             level => "debug",
             message =>
-"Redirecting permanently to product uri kilo-of-carrots for CAR002."
+              "Redirecting permanently to product uri trim-brush for os28005."
         },
-        "Check auth failed debug message"
+        "Check 'Redirecting permanently...' debug message"
     ) || diag Dumper($log);
 
     response_status_is $resp => 301, 'status is 301';
     response_headers_include $resp =>
-      [ Location => 'http://localhost/kilo-of-carrots' ],
+      [ Location => 'http://localhost/trim-brush' ],
       "Check redirect path";
 
     # navigation
 
-    lives_ok { $resp = dancer_response GET => '/fruit' }
-    "GET /fruit (navigation route)";
+    lives_ok { $resp = dancer_response GET => '/hand-tools' }
+    "GET /hand-tools (navigation route)";
 
     response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr|name="Fruit"|, 'found Fruit';
-    response_content_like $resp => qr|products="bananas,oranges"|,
-      'found bananas,oranges';
+    response_content_like $resp => qr|name="Hand Tools"|, 'found Hand Tools';
+    response_content_like $resp => qr|products="([^,]+,){9}[^,]+"|,
+      'found 10 products';
 
-    lives_ok { $resp = dancer_response GET => '/vegetables' }
-    "GET /vegetables (navigation route)";
+    lives_ok { $resp = dancer_response GET => '/hand-tools/brushes' }
+    "GET /hand-tools/brushes (navigation route)";
 
     response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr|name="Vegetables"|, 'found Vegetables';
-    response_content_like $resp => qr|products="carrots,potatoes"|,
-      'found carrots,potatoes';
+    response_content_like $resp => qr|name="Brushes"|, 'found Brushes';
+    response_content_like $resp => qr|products="[^,]+,[^,]+"|,
+      'found 2 products';
+    response_content_like $resp => qr|products=".*Brush Set|,
+      'found Brush Set';
 
     # cart
 
@@ -245,43 +84,87 @@ test 'route tests' => sub {
 
     response_status_is $resp => 200, 'status is ok';
 
-    %form = ( sku => 'BAN001', );
-
+    # try to add canonical product which has variants to cart
+    %form = ( sku => 'os28004', );
     lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
-    "POST /cart add bananas";
+    "POST /cart add Ergo Roller";
+
+    response_status_is $resp => 302, 'status is 302';
+    response_headers_include $resp =>
+      [ Location => 'http://localhost/ergo-roller' ],
+      "Check redirect path";
+
+    # non-existant variant
+    %form = ( sku => 'os28004', roller => 'camel', color => 'orange' );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add Ergo Roller camel orange";
+
+    response_status_is $resp => 302, 'status is 302';
+    response_headers_include $resp =>
+      [ Location => 'http://localhost/ergo-roller' ],
+      "Check redirect path";
+
+    # now add variant
+    %form = ( sku => 'os28004', roller => 'camel', color => 'black' );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add Ergo Roller camel black";
 
     response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr/cart_subtotal="5.34"/,
-      'cart_subtotal is 5.34';
-    response_content_like $resp => qr/cart_total="5.34"/, 'cart_total is 5.34';
-    response_content_like $resp => qr/cart="BAN001:bananas:1:5.34"/,
-      'found qty 1 bananas in cart';
+    response_content_like $resp => qr/cart_subtotal="16/,
+      'cart_subtotal is 16.00';
+    response_content_like $resp => qr/cart_total="16/, 'cart_total is 16.00';
+    response_content_like $resp => qr/cart="os28004-CAM-BLK:Ergo Roller:1:16/,
+      'found qty 1 os28004-CAM-BLK in cart';
 
+    # add again
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add Ergo Roller camel black";
+
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_subtotal="32/,
+      'cart_subtotal is 32.00';
+    response_content_like $resp => qr/cart_total="32/, 'cart_total is 32.00';
+    response_content_like $resp => qr/cart="os28004-CAM-BLK:Ergo Roller:2:16/,
+      'found qty 2 os28004-CAM-BLK in cart';
+
+    # now different variant
+    %form = ( sku => 'os28004', roller => 'camel', color => 'white' );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add Ergo Roller camel white";
+
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_subtotal="48/,
+      'cart_subtotal is 48.00';
+    response_content_like $resp => qr/cart_total="48/, 'cart_total is 48.00';
+    response_content_like $resp =>
+      qr/cart="os28004-CAM-BLK:Ergo Roller:2:16.*?,os28004-CAM-WHT:Ergo Roller:1:16/,
+      'found qty 1 os28004-CAM-WHT in cart and qty 2 BLK';
+
+    # add non-existant product
     %form = ( sku => 'POT002', );
-
     lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
     "POST /cart add potatoes";
 
-    response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr/cart_total="15.49"/,
-      'cart_total is 15.49';
-    response_content_like $resp =>
-      qr/cart="BAN001:bananas:1:5.34,POT002:potatoes:1:10.15"/,
-      'found bananas & potatoes in cart';
+    response_status_is $resp => 302, 'status is 302';
+    response_headers_include $resp => [ Location => 'http://localhost/' ],
+      "Check redirect path";
 
+    # GET /cart
     lives_ok { $resp = dancer_response GET => '/cart' } "GET /cart";
 
     response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr/cart_total="15.49"/,
-      'cart_total is 15.49';
+    response_content_like $resp => qr/cart_subtotal="48/,
+      'cart_subtotal is 48.00';
+    response_content_like $resp => qr/cart_total="48/, 'cart_total is 48.00';
     response_content_like $resp =>
-      qr/cart="BAN001:bananas:1:5.34,POT002:potatoes:1:10.15"/,
-      'found bananas & potatoes in cart';
+      qr/cart="os28004-CAM-BLK:Ergo Roller:2:16.*?,os28004-CAM-WHT:Ergo Roller:1:16/,
+      'found qty 1 os28004-CAM-WHT in cart and qty 2 BLK';
 
     # login
 
     # grab session id - we want to make sure it does NOT change on login
     # but that it DOES change after logout
+    # TODO: the session id does NOT currently change on login but it ought to
 
     lives_ok { $resp = dancer_response GET => '/sessionid' } "GET /sessionid";
     $sessionid = $resp->content;
@@ -327,8 +210,8 @@ test 'route tests' => sub {
     read_logs;    # clear logs
 
     %form = (
-        username => 'testuser',
-        password => 'mypassword'
+        username => 'customer1',
+        password => 'c1passwd'
     );
 
     lives_ok {
@@ -350,7 +233,7 @@ test 'route tests' => sub {
     $log = pop @$logs;
     cmp_deeply(
         $log,
-        { level => "debug", message => "users accepted user testuser" },
+        { level => "debug", message => "users accepted user customer1" },
         "login successful in debug logs"
     ) || diag Dumper($log);
 
@@ -366,32 +249,66 @@ test 'route tests' => sub {
     response_status_is $resp => 200, 'status is ok';
     response_content_like $resp => qr/Private page/, 'got private page';
 
+    # price modifiers
+
+    lives_ok( sub { $user = shop_user->find({username => 'customer1' }) },
+            "grab customer1 fom db" );
+
+    cmp_ok( $user->roles->count, "==", 0, "user has 0 roles" );
+
+    %form = ( sku => 'os28005', quantity => 5 );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add 5 Trim Brushes";
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_subtotal="92.95"/,
+      'cart_subtotal is 92.95';
+    response_content_like $resp => qr/cart=.+os28005:Trim Brush:5:8.99:8.99:/,
+      'found qty 5 os28005 @ 8.99 in cart';
+
+    # authenticated user should get selling_price of 8.20
+    # total is 48 for ergo rollers plus 82 for trim brushes = 130
+    %form = ( sku => 'os28005', quantity => 5 );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add 5 Trim Brushes";
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_subtotal="130.00"/,
+      'cart_subtotal is 130.00';
+    response_content_like $resp => qr/cart=.+os28005:Trim Brush:10:8.99:8.20:/,
+      'found qty 10 os28005 @ 8.20 in cart';
+
+    # add trade role to user
+    lives_ok( sub { $user->add_to_roles( { name => 'trade' } ) },
+        "Add user to role trade" );
+
+    # trade user should get selling_price of 7.80
+    # total is 48 for ergo rollers plus 78 for trim brushes = 126
+    lives_ok( sub { $resp = dancer_response( GET => '/cart' ) }, "GET /cart" );
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_subtotal="126.00"/,
+      'cart_subtotal is 126.00';
+    response_content_like $resp => qr/cart=.+os28005:Trim Brush:10:8.99:7.80:/,
+      'found qty 10 os28005 @ 7.80 in cart';
+
     # checkout
 
     lives_ok { $resp = dancer_response GET => '/checkout' } "GET /checkout";
 
     response_status_is $resp => 200, 'status is ok';
-    response_content_like $resp => qr/cart_subtotal="15.49"/,
-      'cart_subtotal is 15.49';
-    response_content_like $resp => qr/cart_total="15.49"/,
-      'cart_total is 15.49';
+    response_content_like $resp => qr/cart_subtotal="126.00"/,
+      'cart_subtotal is 126.00';
+    response_content_like $resp => qr/cart_total="126.00"/,
+      'cart_total is 126.00';
     response_content_like $resp =>
-      qr/cart="BAN001:bananas:1:5.34,POT002:potatoes:1:10.15"/,
-      'found bananas & potatoes at checkout';
+      qr/cart=".*:Ergo Roller:2:16.*?,os28004-CAM-WHT:Ergo Roller:1:16/,
+      'found 2 ergo roller variants at checkout';
 
     # logout
 
-    read_logs;    # clear logs
     lives_ok { $resp = dancer_response GET => '/logout' } "GET /logout";
+    response_status_is $resp => 302, 'status is ok';
+
     response_redirect_location_is $resp => 'http://localhost/',
       "Redirected to /";
-
-    $log = pop @{&read_logs};
-    cmp_deeply(
-        $log,
-        { level => "debug", message => re('Change sessions_id.+undef') },
-        "Check sessions_id undef debug message"
-    ) || diag Dumper($log);
 
     lives_ok { $resp = dancer_response GET => '/sessionid' } "GET /sessionid";
     cmp_ok( $resp->content, 'ne', $sessionid, "Check session id has changed" );
@@ -405,9 +322,9 @@ test 'route tests' => sub {
 
     lives_ok { $resp = dancer_response GET => '/cart' } "GET /cart";
 
-    response_status_is $resp    => 200,                'status is ok';
-    response_content_like $resp => qr/cart_total="0"/, 'cart_total is 0';
-    response_content_like $resp => qr/cart=""/,        'cart is empty';
+    response_status_is $resp    => 200,               'status is ok';
+    response_content_like $resp => qr/cart_total="0/, 'cart_total is 0';
+    response_content_like $resp => qr/cart=""/,       'cart is empty';
 
 };
 

@@ -7,6 +7,7 @@ use Dancer ':syntax';
 use Dancer::Plugin;
 use Dancer::Plugin::Interchange6;
 use Dancer::Plugin::Auth::Extensible;
+use Try::Tiny;
 
 =head1 NAME
 
@@ -79,7 +80,7 @@ sub account_routes {
             session logged_in_user_realm => $realm;
 
             if (! $current_cart->users_id) {
-                $current_cart->users_id($user->id);
+                $current_cart->set_users_id($user->id);
             }
 
             # now pull back in old cart items from previous authenticated
@@ -104,10 +105,16 @@ sub account_routes {
     };
 
     $routes{logout}->{any} = sub {
-        my $cart = cart;
+        my $cart = shop_cart;
         if ( $cart->count > 0 ) {
             # save our items for next login
-            shop_cart->sessions_id(undef);
+            try {
+                $cart->set_sessions_id(undef);
+            }
+            catch {
+                warning "Failed to set sessions_id to undef for cart id: "
+                  . $cart->id;
+            };
         }
         # any empty cart with sessions_id matching our session id will be
         # destroyed here

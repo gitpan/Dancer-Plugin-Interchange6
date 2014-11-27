@@ -10,8 +10,6 @@ use Dancer::Plugin::Interchange6::Routes;
 use Dancer::Plugin::Auth::Extensible;
 use Dancer::Plugin::DBIC;
 
-#print STDERR Dumper(config);
-
 get '/' => sub {
     return 'Home page';
 };
@@ -38,7 +36,9 @@ hook before_cart_display => sub {
     $tokens->{cart} = join(
         ",",
         sort map {
-            join( ':', $_->{sku}, $_->{name}, $_->{quantity}, $_->{price} )
+            join( ':',
+                $_->sku, $_->name, $_->quantity, sprintf("%.2f", $_->price),
+                sprintf( "%.2f", $_->selling_price ), $_->uri )
         } @{ $tokens->{cart} }
     );
 };
@@ -49,7 +49,9 @@ hook before_checkout_display => sub {
     $tokens->{cart} = join(
         ",",
         sort map {
-            join( ':', $_->{sku}, $_->{name}, $_->{quantity}, $_->{price} )
+            join( ':',
+                $_->sku, $_->name, $_->quantity, sprintf("%.2f", $_->price),
+                sprintf( "%.2f", $_->selling_price ), $_->uri )
         } @{ $tokens->{cart} }
     );
 };
