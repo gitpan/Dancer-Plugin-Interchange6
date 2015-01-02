@@ -149,6 +149,20 @@ test 'route tests' => sub {
     response_headers_include $resp => [ Location => 'http://localhost/' ],
       "Check redirect path";
 
+    # add variant using variant sku
+    %form = ( sku => 'os28004-HUM-BLK', );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart add Ergo Roller human black using variant's sku only";
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_total="64/, 'cart_total is 64.00';
+
+    # remove the variant
+    %form = ( remove => 'os28004-HUM-BLK', );
+    lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }
+    "POST /cart remove Ergo Roller human black using variant's sku only";
+    response_status_is $resp => 200, 'status is ok';
+    response_content_like $resp => qr/cart_total="48/, 'cart_total is 48.00';
+
     # GET /cart
     lives_ok { $resp = dancer_response GET => '/cart' } "GET /cart";
 
@@ -254,7 +268,7 @@ test 'route tests' => sub {
     lives_ok( sub { $user = shop_user->find({username => 'customer1' }) },
             "grab customer1 fom db" );
 
-    cmp_ok( $user->roles->count, "==", 0, "user has 0 roles" );
+    cmp_ok( $user->roles->count, "==", 1, "user has 1 role" );
 
     %form = ( sku => 'os28005', quantity => 5 );
     lives_ok { $resp = dancer_response( POST => '/cart', { body => {%form} } ) }

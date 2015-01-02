@@ -100,6 +100,33 @@ is the value of the C<product> key.
 
 =item before_checkout_display
 
+=item before_navigation_search
+
+This hook is called if a navigation uri is requested and before product search
+queries are generated.
+
+The hook sub receives the navigation data as hash reference:
+
+=over 4
+
+=item navigation
+
+Navigation object.
+
+=item page
+
+Page number found at end of URI or 1 if no page number found.
+
+=item template
+
+Name of template.
+
+=back
+
+The navigation hash reference can be modified inside the hook and all changes
+will be visible to the navigation route (and also the template) after the hook
+returns.
+
 =item before_navigation_display
 
 The hook sub receives the navigation data as hash reference:
@@ -112,15 +139,15 @@ Navigation object.
 
 =item products
 
-Products for this navigation item.
-
-=item count
-
-Number of products.
+Product listing for this navigation item. The product listing is generated
+using L<Interchange6::Schema::Result::Product/listing>.
 
 =item pager
 
-Page for products.
+L<Data::Page> object for L</products>.
+
+To get the full count of products call C<total_entries> on the Data::Page
+object.
 
 =item template
 
@@ -158,7 +185,8 @@ register shop_setup_routes => sub {
     _setup_routes();
 };
 
-register_hook (qw/before_product_display before_navigation_display/);
+register_hook (qw/before_product_display before_navigation_search
+    before_navigation_display/);
 register_plugin;
 
 our $object_autodetect = 0;
@@ -230,19 +258,12 @@ sub _setup_routes {
     # fallback route for flypage and navigation
     get qr{/(?<path>.+)} => sub {
         my $path = captures->{'path'};
-        my $product;
 
         # check for a matching product by uri
-        my $product_result = shop_product->search({uri => $path});
+        my $product = shop_product->find({uri => $path});
 
-        if ($product_result > 1) {
-            die "Ambigious result on path $path.";
-        }
+        if (!defined $product) {
 
-        if ($product_result == 1) {
-            $product = $product_result->next;
-        }
-        else {
             # check for a matching product by sku
             $product = shop_product($path);
 
@@ -254,10 +275,6 @@ sub _setup_routes {
                         " for $path.";
                     return redirect(uri_for($product->uri), 301);
                 }
-            }
-            else {
-                # no matching product found
-                undef $product;
             }
         }
 
@@ -293,59 +310,58 @@ sub _setup_routes {
         }
 
         # first check for navigation item
-        my $navigation_result = shop_navigation->search({uri => $path});
+        my $nav = shop_navigation->find({uri => $path});
 
-        if ($navigation_result > 1) {
-            die "Ambigious result on path $path.";
-        }
+        if (defined $nav) {
 
-        if ($navigation_result == 1) {
             # navigation item found
-            my $nav = $navigation_result->next;
-
-            # search parameters
-            my $search_args = {
-                conditions => {
-                    # only active items
-                    active => 1,
-                },
-                attributes => {
-                    rows => $routes_config->{navigation}->{records},
-                    page => $page},
-            };
-
-            my $products;
-
-            my $nav_products = $nav->search_related('navigation_products')->search_related(
-                'product',
-                $search_args->{conditions},
-                $search_args->{attributes},
-            );
-
-            if ($object_autodetect) {
-                $products = $nav_products;
-            }
-            else {
-                while (my $rec = $nav_products->next) {
-                    push @$products, $rec;
-                    next if @$products > 200;
-                }
-            }
 
             # retrieve navigation attribute for template
-	    my $template = $routes_config->{navigation}->{template};
+            my $template = $routes_config->{navigation}->{template};
 
-	    if (my $attr_value = $nav->find_attribute_value('template')) {
-            debug "Change template name from $template to $attr_value due to navigation attribute.";
-            $template = $attr_value;
-	    }
+            if ( my $attr_value = $nav->find_attribute_value('template') ) {
+                debug "Change template name from $template to $attr_value due to navigation attribute.";
+                $template = $attr_value;
+            }
 
-            my $tokens = {navigation => $nav,
-			  template => $template,
-                          products => $products,
-                          count => $nav_products->count,
-                          pager => $nav_products->pager,
-                         };
+            my $tokens = {
+                navigation => $nav,
+                page       => $page,
+                template   => $template
+            };
+
+            execute_hook('before_navigation_search', $tokens);
+
+            # we need to find all our active products before we call
+            # listing method on the resultset and we'll later need
+            # the pager for this resultset
+
+            my $products =
+              $tokens->{navigation}
+              ->navigation_products->search_related('product')
+              ->active->limited_page( $tokens->{page},
+                $routes_config->{navigation}->{records} );
+
+            # now get the HRI product listing
+            # alias 'me' refers to navigation_products
+            # NOTE: group_by must always contain product.sku and
+            # inventory.quantity plus all order_by columns
+
+            my $product_listing =
+              $products->listing( { users_id => session('logged_in_user_id') } )
+              ->group_by(
+                [
+                    'product.sku', 'inventory.quantity',
+                    'me.priority', 'product.priority'
+                ]
+              )->order_by('!me.priority,!product.priority');
+
+            if (!$object_autodetect) {
+                $product_listing = [$product_listing->all];
+            }
+
+            $tokens->{products} = $product_listing;
+            $tokens->{pager}    = $products->pager;
 
             execute_hook('before_navigation_display', $tokens);
 

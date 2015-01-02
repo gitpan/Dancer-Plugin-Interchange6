@@ -17,11 +17,11 @@ Dancer::Plugin::Interchange6 - Interchange6 Shop Plugin for Dancer
 
 =head1 VERSION
 
-Version 0.061
+Version 0.070
 
 =cut
 
-our $VERSION = '0.061';
+our $VERSION = '0.070';
 
 =head1 REQUIREMENTS
 
@@ -395,7 +395,7 @@ Peter Mottram for his patches.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-2014 Stefan Hornburg (Racke).
+Copyright 2010-2015 Stefan Hornburg (Racke).
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
